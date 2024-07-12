@@ -9,6 +9,7 @@ import (
 )
 
 const padding = 10
+const logoPadding = 2
 
 type Todo struct {
 	text string
@@ -24,6 +25,10 @@ type App struct {
 	bgColor     tcell.Color
 	fgColor     tcell.Color
 	transparent bool
+}
+
+func getAsciiArt() string {
+	return `to-day`
 }
 
 func newApp() *App {
@@ -54,16 +59,18 @@ func newApp() *App {
 func (a *App) draw() {
 	a.screen.Clear()
 	style := tcell.StyleDefault.Foreground(a.fgColor)
+
 	if !a.transparent {
 		style = style.Background(a.bgColor)
 	}
-	// if highlight {
-	// 	style = style.Reverse(true)
-	// }
 
 	// Draw border
 	width, height := a.screen.Size()
-	drawBox(a.screen, padding-1, padding-1, width-padding, height-padding, style)
+	logo := "to-day"
+
+	drawTextWithBackground(a.screen, padding, 7, tcell.StyleDefault.Background(tcell.NewRGBColor(151, 197, 117)).Foreground(tcell.NewRGBColor(10, 14, 20)), logo)
+
+	drawBox(a.screen, padding-2, padding-1, width-padding, height-padding, style)
 
 	for i, todo := range a.todos {
 		if i >= height-2*padding {
@@ -103,6 +110,17 @@ func drawBox(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style) {
 func drawText(s tcell.Screen, x, y int, style tcell.Style, text string) {
 	for i, r := range text {
 		s.SetContent(x+i, y, r, nil, style)
+	}
+}
+
+func drawTextWithBackground(s tcell.Screen, x, y int, bgStyle tcell.Style, text string) {
+	for i, r := range text {
+		s.SetContent(x+i, y, r, nil, bgStyle)
+	}
+	// Fill the background to the left and right of the text
+	for i := 0; i < logoPadding; i++ {
+		s.SetContent(x-i-1, y, ' ', nil, bgStyle)
+		s.SetContent(x+len(text)+i, y, ' ', nil, bgStyle)
 	}
 }
 
@@ -170,7 +188,6 @@ func (a *App) handleNormalMode(ev *tcell.EventKey) {
 }
 
 func main() {
-	// Clear the terminal
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
 	cmd.Run()
